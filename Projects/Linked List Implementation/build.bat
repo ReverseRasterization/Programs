@@ -1,0 +1,1 @@
+g++ main.cpp LinkedList.cpp Node.cpp -o main
