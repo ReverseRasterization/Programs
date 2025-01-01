@@ -3,14 +3,25 @@
 #include "LinkedList.h"
 
 int main(){
-    LinkedList<std::string> linkedList;
+    LinkedList<int> linkedList;
 
-    linkedList.insertAtBeginning("Hola!");
-    // for (int i = 1; i <= 5; i++){
-    //     linkedList.insertAtBeginning(i);
-    // } 
+    for (int i = 1; i <= 5; i++){
+         linkedList.insertAtBeginning(i);
+    } 
 
-    linkedList.Display(false);
+    Node<int>* currNode = linkedList.head.get();
+
+    int sum = 0;
+    while (currNode != nullptr){
+        sum+=currNode->data;
+        currNode = currNode->next.get();
+    }
+
+    std::cout << "The sum of the linked list is: " << sum;
+
+
+
+    linkedList.Display(true);
 
     return 0;
 }

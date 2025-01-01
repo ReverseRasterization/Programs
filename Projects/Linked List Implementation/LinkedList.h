@@ -1,10 +1,12 @@
 #ifndef LINKEDLIST
 #define LINKEDLIST
 
+#include <memory>
+
 template <typename T>
 struct Node {
     T data;
-    Node* next;
+    std::unique_ptr<Node<T>> next;
 
     void display();
 
@@ -15,8 +17,7 @@ template <typename T>
 class LinkedList 
 {
     public:
-        Node<T>* head = nullptr;
-        Node<T>* tail = nullptr;
+        std::unique_ptr<Node<T>> head = nullptr;
 
         void insertAtBeginning(T data);
         void insertAtEnd(T data);
@@ -27,13 +28,13 @@ class LinkedList
         void Display(bool debug);
 
     private:
-        Node<T>* findNodeFromPosition(int index);
+         Node<T>* findNodeFromPosition(int index);
 };
 
 template <typename T>
 void Node<T>::display() {
     std::cout << "Data: " << data << '\n';
-    std::cout << "Next: " << next << "\n\n"; 
+    std::cout << "Next: " << next.get() << "\n"; 
 }
 
 #endif
