@@ -6,35 +6,42 @@
 template <typename T>
 struct Node {
     T data;
-    std::unique_ptr<Node<T>> next;
+    std::shared_ptr<Node<T>> next;
+    std::weak_ptr<Node<T>> prev;
+    
+    void display() {
+        std::cout << "Previous " << prev.lock().get() << '\n';
+        std::cout << "Data: " << data << '\n';
+        std::cout << "This: " << this << '\n';
+        std::cout << "Next: " << next.get() << "\n"; 
+    }
 
-    void display();
-
-    Node(T value):data(value), next(nullptr){}
+    Node(T value):data(value), next(nullptr), prev(){}
 };
 
 template <typename T>
 class LinkedList 
 {
     public:
-        std::unique_ptr<Node<T>> head = nullptr;
+        bool looped = false;
+
+        std::shared_ptr<Node<T>> head = nullptr;
 
         void insertAtBeginning(T data);
         void insertAtEnd(T data);
         void insertAtPosition(int index, T data);
-        void deleteFromBeginning();
-        void deleteFromEnd();
-        void deleteFromPosition(int index);
+        // void deleteFromBeginning();
+        // void deleteFromEnd();
+        // void deleteFromPosition(int index);
         void Display(bool debug);
 
-    private:
-         Node<T>* findNodeFromPosition(int index);
+        std::weak_ptr<Node<T>> findNodeFromPosition(int index);
+
+        LinkedList(bool looped){
+            this->looped = looped;
+        }
 };
 
-template <typename T>
-void Node<T>::display() {
-    std::cout << "Data: " << data << '\n';
-    std::cout << "Next: " << next.get() << "\n"; 
-}
+
 
 #endif
