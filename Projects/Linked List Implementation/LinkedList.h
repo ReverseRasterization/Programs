@@ -2,6 +2,7 @@
 #define LINKEDLIST
 
 #include <memory>
+#include <iostream>
 
 template <typename T>
 struct Node {
@@ -30,9 +31,9 @@ class LinkedList
         void insertAtBeginning(T data);
         void insertAtEnd(T data);
         void insertAtPosition(int index, T data);
-        // void deleteFromBeginning();
-        // void deleteFromEnd();
-        // void deleteFromPosition(int index);
+        void deleteFromBeginning();
+        void deleteFromEnd();
+        void deleteFromPosition(int index);
         void Display(bool debug);
 
         std::weak_ptr<Node<T>> findNodeFromPosition(int index);

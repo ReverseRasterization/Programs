@@ -1,41 +1,35 @@
 #include <iostream>
+#include <memory>
 
 #include "LinkedList.h"
 
+
 // TODO: In singly linked, if someone requests to insert something and theres no head and the index isnt 0, just cancel the operation
+// TODO: singly linked: fix the delete from end function, my dumbass forgot a return in the nothing after head statement
 // TODO: Add errors in insert at position, all delete functions, and find node from position for both singly and doubly
 
-// TODO: For doubly, if the user is trying to insert at the end using the position insert function then fix the no previous bug
 
 int main(){
-    // SLinkedList<int> singlyLinkedList;
-
-    // for (int i = 1; i <= 5; i++){
-    //      singlyLinkedList.insertAtBeginning(i);
-    // } 
-
-    // Node<int>* currNode = singlyLinkedList.head.get();
-
-    // int sum = 0;
-    // while (currNode != nullptr){
-    //     sum+=currNode->data;
-    //     currNode = currNode->next.get();
-    // }
-
-    // std::cout << "The sum of the linked list is: " << sum;
-
-
-
-    // singlyLinkedList.Display(true);
-
     LinkedList<int> dLinkedList(true);
+    
     for (int i = 1; i <= 5; i++){
         dLinkedList.insertAtBeginning(i);
     } 
 
-    dLinkedList.insertAtPosition(6, 69);
+    std::weak_ptr<Node<int>> ptr1 = dLinkedList.head;    
+    std::weak_ptr<Node<int>> ptr2 = ptr1.lock()->next;
+    std::weak_ptr<Node<int>> ptr3 = ptr2.lock()->next;
+    std::weak_ptr<Node<int>> ptr4 = ptr3.lock()->next;
+    std::weak_ptr<Node<int>> ptr5 = ptr4.lock()->next;
 
-    dLinkedList.Display(true);
+    dLinkedList.deleteFromEnd();
+
+    std::cout << "Ptr1: " << ptr1.lock()->data << '\n';
+    std::cout << "Ptr2: " << ptr2.lock()->data << '\n';
+    std::cout << "Ptr3: " << ptr3.lock()->data << '\n';
+    std::cout << "Ptr4: " << ptr4.lock()->data << '\n';
+    std::cout << "Ptr5: " << ptr5.lock()->data << '\n';
+
 
     return 0;
 }

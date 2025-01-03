@@ -1,6 +1,10 @@
+
+#include "LinkedList.h"
+
 #include <iostream>
 #include <memory>
-#include "LinkedList.h"
+
+
 
 
 template <typename T>
@@ -78,6 +82,7 @@ void LinkedList<T>::insertAtPosition(int index, T data){
     }else {
         std::shared_ptr<Node<T>> previousNode = findNodeFromPosition(index-1).lock();
         if (previousNode) {
+            nNode->prev = previousNode;
             nNode->next = previousNode->next;
             previousNode->next = nNode;
         }
@@ -85,55 +90,84 @@ void LinkedList<T>::insertAtPosition(int index, T data){
     }
 }
 
-// template <typename T>
-// void LinkedList<T>::deleteFromBeginning(){
-//     if(head) {
-//         head = std::move(head->next);
-//     }
-// }
+template <typename T>
+void LinkedList<T>::deleteFromBeginning(){
+    if(head) {
+        if (!head->prev.expired()){
+            head->prev.lock()->next = head->next; // this just sets the tails next value to the heads next value
 
+            if (head->next){
+                head->next->prev = head->prev; // this just sets the new heads previous value to the tail assuming looping
+            }
+        }
 
-// template <typename T>
-// void LinkedList<T>::deleteFromEnd(){
-//     if (!head) {
-//         return;
-//     }
-
-//     if(head->next == nullptr) {
-//         head.reset();
-//     }
-    
-//     Node<T>* secondLastNode = findNodeFromPosition(-2);
-//     secondLastNode->next.reset();
-// }
-
-// template <typename T>
-// void LinkedList<T>::deleteFromPosition(int index){
-//     if (!head){ // there's not even a head (overly circumsized)
-//         return;
-//     }
-    
-//     if (index == 0) {
-//         if (head->next == nullptr){
-//             head.reset();
-//         }else {
-//             head = std::move(head->next);
-//         }
+        if (head->next && !looped){
+            head->next->prev.reset(); // this gets rid of the previous value of the node after the head assuming no looping
+        }
         
-//         return;
-//     }
-
-//     if (index == 1 && head->next == nullptr) { // there's a head, but nothing after (its been circumsized)
-//         return;
-//     }
+        head = head->next;
+    }
+}
 
 
-//     Node<T>* prevNode = findNodeFromPosition(index-1);
-//     if (prevNode!=nullptr && prevNode->next != nullptr){
-//         prevNode->next = std::move(prevNode->next->next);
-//     }
+template <typename T>
+void LinkedList<T>::deleteFromEnd(){
+    if (!head) {
+        return;
+    }
 
-// }
+    if(!head->next) {
+        head = nullptr;
+        return;
+    }
+
+    if (looped){
+        if (head->prev.lock()->prev.lock() != head){ 
+            head->prev = head->prev.lock()->prev;
+            head->prev.lock()->next = head;
+        }else { // the list only has 2 elements
+            head->next = nullptr;
+            head->prev.reset();
+        }
+        
+    }else {
+        std::shared_ptr<Node<T>> secondLastNode = findNodeFromPosition(-2).lock();
+        if (secondLastNode){
+            secondLastNode->next.reset();
+        }
+        
+    }
+    
+    
+}
+
+template <typename T>
+void LinkedList<T>::deleteFromPosition(int index){
+    if (!head){ // there's not even a head
+        return;
+    }
+    
+    if (index == 0) { // delete the head
+        deleteFromBeginning();
+        
+        return;
+    }
+
+    // if (index == 1 && head->next == nullptr) { // there's a head, but nothing after (its been circumsized)
+    //     return;
+    // }
+
+
+    std::shared_ptr<Node<T>> prevNode = findNodeFromPosition(index-1).lock();
+    if (prevNode && prevNode->next){
+        auto targetNode = prevNode->next;
+
+        prevNode->next = targetNode->next;
+        prevNode->next->prev = prevNode;
+        
+    }
+
+}
 
 template <typename T>
 void LinkedList<T>::Display(bool debug)
