@@ -57,6 +57,7 @@ void SLinkedList<T>::deleteFromEnd(){
 
     if(head->next == nullptr) {
         head.reset();
+        return;
     }
     
     Node<T>* secondLastNode = findNodeFromPosition(-2);
@@ -76,10 +77,6 @@ void SLinkedList<T>::deleteFromPosition(int index){
             head = std::move(head->next);
         }
         
-        return;
-    }
-
-    if (index == 1 && head->next == nullptr) { // there's a head, but nothing after (its been circumsized)
         return;
     }
 
