@@ -214,9 +214,3 @@ std::weak_ptr<Node<T>> LinkedList<T>::findNodeFromPosition(int index)
 
     return currNode;
 }
-
-template class LinkedList<int>;
-template class LinkedList<double>;
-template class LinkedList<float>;
-template class LinkedList<char>;
-template class LinkedList<std::string>;
