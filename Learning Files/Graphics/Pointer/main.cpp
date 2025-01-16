@@ -17,6 +17,7 @@ int main()
     triangle.setPosition({500, 500});
 
     sf::VertexArray laser(sf::PrimitiveType::Lines, 2);
+    laser[0].position = sf::Vector2f(500,500);
     
 
     while (window.isOpen())
@@ -34,8 +35,6 @@ int main()
 
                 triangle.setRotation(sf::degrees((atan2(dY, dX)) * (180.0f / 3.14159265359f)+90));
 
-                laser[0].position = triangle.getPoint(0);
-                std::cout << triangle.getPoint(0).y;
                 laser[1].position = sf::Vector2f(MousePos.x, MousePos.y);
             }
         }
