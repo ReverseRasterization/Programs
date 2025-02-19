@@ -1,5 +1,6 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Audio.hpp>
+#include "Entities/enemy.h"
 #include <iostream>
 #include <ctime>
 #include <cstdlib>
@@ -7,14 +8,13 @@
 #include <vector>
 #include <chrono>
 
-// TOOD: Add a score for when enemies die
-// TODO: Add accuracy counter
 // TODO: Add indicators of critial hit (factor of 1.4 - 2), good hit (factor of .76 - 1.3), or weak hit (factor of .3-.75)
 // TODO: Add enemy movement
+// TODO: Add death animations (float x direction and fade)
 // TODO: Allow enemies to attack you
 // TODO: Add multiple enemies (implement max enemies & enemies per second)
 // TODO: Add an FPS counter
-// TODO: Add a settings UI that adjusts volume, max enemies, enemies per second, and toggles the FPS counter
+// TODO: Add a settings UI that adjusts volume, max enemies, enemies per second, and toggles the FPS counter or the accuracy counter
 
 struct Bullet{
     sf::Vector2f direction;
@@ -25,62 +25,28 @@ struct Bullet{
     sf::CircleShape bullet = sf::CircleShape(5.0f);
 };
 
-struct Enemy{
-    float health = 100;
-    int speed = 10;
 
-    // Some hitbox data, the rectangles getPosition function is at the top left corner of the rectangle
-    int y_top;
-    int y_bottom;
-    int x_left;
-    int x_right;
-
-    sf::RectangleShape entity = sf::RectangleShape({96.f, 80.f});
-    sf::RectangleShape healthBarBG = sf::RectangleShape({96.f, 10});
-    sf::RectangleShape healthBarFG = sf::RectangleShape({96.f, 10});
-};
-
-float getDistance(int x1, int x2, int y1, int y2);
-Enemy summonEnemy(sf::Texture& enemy_texture);
 Bullet fireBullet(sf::Vector2f mousePos, sf::Vector2f trianglePos);
+void updateScore(sf::Text& scoreLabel, int nScore);
+void updateAccuracy(sf::Text& accuracyLabel, int bulletsFired, int hitsLanded);
 
 int main()
 {
     srand(time(NULL));
 
-    // Make window
-
-    sf::RenderWindow window(sf::VideoMode({1000,1000}), "Mouse Pointer", sf::Style::Close);
-    window.setMouseCursorVisible(false);
-
-    // Make Triangle
-
-    sf::ConvexShape triangle;
-    triangle.setPointCount(3);
-    triangle.setPoint(0, {0, -25}); // This is the tip
-    triangle.setPoint(1, {25, 25});
-    triangle.setPoint(2, {-25, 25});
-    triangle.setFillColor(sf::Color::Green);
-    triangle.setOrigin({0,0});
-    triangle.setPosition({500, 500});
-
+    int score = 0;
+    int bulletsFired = 0;
+    int hitsLanded = 0;
+    
     // Load & apply textures
 
     sf::Texture xhairTexture;
-    sf::Texture enemy_texture;
-    if(!xhairTexture.loadFromFile("Textures/xhair.png") || !enemy_texture.loadFromFile("Textures/enemy.png")){
+    if(!xhairTexture.loadFromFile("Textures/xhair.png")){
         return -1;
     }
 
     sf::RectangleShape xhair({75.f, 75.f});
     xhair.setTexture(&xhairTexture);
-
-    // Make enemy
-
-    Enemy enemy = summonEnemy(enemy_texture);
-
-    std::vector<Bullet> bullets;
-    sf::Clock clock;
 
     // Load sounds
 
@@ -94,8 +60,54 @@ int main()
     sf::Sound hitSound(hit_buffer);
     sf::Sound eDeathSound(enemy_death_buffer);
 
+    // Load Fonts
+    sf::Font font;
+    if(!font.openFromFile("font.ttf"))
+    {
+        return -1;
+    }
+
+    // Make window
+
+    sf::RenderWindow window(sf::VideoMode({1000,1000}), "Mouse Pointer", sf::Style::Close);
+    window.setMouseCursorVisible(false);
+
+    // Make score & accuracy counter
+
+    sf::Text scoreLabel(font);
+    scoreLabel.setCharacterSize(48);
+    scoreLabel.setFillColor(sf::Color::White);
+    updateScore(scoreLabel, score);
+
+    sf::Text accuracyLabel(font);
+    accuracyLabel.setCharacterSize(24);
+    accuracyLabel.setFillColor(sf::Color::White);
+    accuracyLabel.setPosition(sf::Vector2f(10, 970));
+
+    // Make Triangle
+
+    sf::ConvexShape triangle;
+    triangle.setPointCount(3);
+    triangle.setPoint(0, {0, -25}); // This is the tip
+    triangle.setPoint(1, {25, 25});
+    triangle.setPoint(2, {-25, 25});
+    triangle.setFillColor(sf::Color::Green);
+    triangle.setOrigin({0,0});
+    triangle.setPosition({500, 500});
+
+    // Make enemy
+
+    Enemy enemy = Enemy(100);
+
+    std::vector<Bullet> active_bullets;
+
+    sf::Clock clock;
+
+
     while (window.isOpen())
     {
+        // Events
+
         while (const std::optional event = window.pollEvent())
         {
             if (event->is<sf::Event::Closed>()) {
@@ -111,29 +123,41 @@ int main()
                 xhair.setPosition(MousePos-sf::Vector2f(37.5, 37.5));
             }
             if(event->is<sf::Event::MouseButtonPressed>()){
-                bullets.push_back(fireBullet(static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)), triangle.getPosition()));
+                active_bullets.push_back(fireBullet(static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)), triangle.getPosition()));
                 gunshot.play();
+
+                bulletsFired+=1;
             }
             if(event->is<sf::Event::KeyPressed>()){
                 if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space)){
-                    enemy = summonEnemy(enemy_texture);
+                    enemy.summon();
                 }
             }
         }
 
+        // Delta time calculation
+
         sf::Time dTime = clock.restart();
         float dt = dTime.asSeconds();
 
+        // Rendering
+
         window.clear();
 
-        for (auto it = bullets.begin(); it != bullets.end();){
+        // Render all bullets & check if it hit an enemy
+
+        for (auto it = active_bullets.begin(); it != active_bullets.end();){
             
             float newX = it->bullet.getPosition().x + (it->direction.x * it->speed * dt);
             float newY = it->bullet.getPosition().y + (it->direction.y * it->speed * dt);
 
             it->bullet.setPosition(sf::Vector2f(newX, newY));
 
-            if (newX > enemy.x_left && newX < enemy.x_right && newY > enemy.y_top && newY < enemy.y_bottom){
+            std::vector<int> enemyBounds = enemy.getHitBox();
+
+            if (enemy.hit(sf::Vector2f(newX, newY))){
+                hitsLanded+=1;
+
                 float damage = it->base_damage;
                 float damage_modifier = (static_cast<float>(rand()) / static_cast<float>(RAND_MAX)) * 2.0f;
 
@@ -143,25 +167,33 @@ int main()
 
                 damage*=damage_modifier;
 
-                enemy.health -= damage;
+                enemy.takeDamage(static_cast<int>(damage), damage_modifier);
 
-                if (enemy.health <= 0) {
-                    enemy.health = 0;
+                if (damage_modifier >= 1.4) { // Critial hit
+                    score+=4;
+                }else { // Regular hit
+                    score+=1;
+                }
+
+                if (enemy.getHp() <= 0) {
                     eDeathSound.play();
+                    enemy.summon();
 
-                    enemy = summonEnemy(enemy_texture);
+                    score+=15;
                 }else {
                     hitSound.play();
                 }
 
-                enemy.healthBarFG.setSize(sf::Vector2f(enemy.healthBarBG.getSize().x * (static_cast<float>(enemy.health)/100), enemy.healthBarFG.getSize().y));
-
-                it = bullets.erase(it);
+                updateScore(scoreLabel, score);
+                updateAccuracy(accuracyLabel, bulletsFired, hitsLanded);
+                
+                it = active_bullets.erase(it);
                 break;
             }
 
             if (newX < 0 || newX > window.getSize().x || newY < 0 || newY > window.getSize().y){
-                it = bullets.erase(it);
+                it = active_bullets.erase(it);
+                updateAccuracy(accuracyLabel, bulletsFired, hitsLanded);
                 break;
             }else {
                 window.draw(it->bullet);
@@ -169,11 +201,11 @@ int main()
             }
         };
 
-        window.draw(enemy.entity);
-        window.draw(enemy.healthBarBG);
-        window.draw(enemy.healthBarFG);
+        enemy.draw(window);
         window.draw(triangle);
         window.draw(xhair);
+        window.draw(scoreLabel);
+        window.draw(accuracyLabel);
         window.display();
     }
 
@@ -195,39 +227,15 @@ Bullet fireBullet(sf::Vector2f mousePos, sf::Vector2f trianglePos) {
     return nBullet;
 }
 
-float getDistance(int x1, int x2, int y1, int y2){ // utilizes c^2 = a^2 + b^2 to determine distance
-    // a = x diff
-    // b = y diff
+void updateScore(sf::Text& scoreLabel, int nScore){
+    scoreLabel.setString("Score: " + std::to_string(nScore));
 
-    int a = std::abs(x2-x1);
-    int b = std::abs(y2-y1);
-
-    return sqrt((a*a)+(b*b));
+    scoreLabel.setOrigin(scoreLabel.getLocalBounds().getCenter());
+    scoreLabel.setPosition(sf::Vector2f(500,30));
 }
 
-Enemy summonEnemy(sf::Texture& enemy_texture){
-    Enemy nEnemy;
-
-    sf::Vector2f position(500, 500);
-
-    while (getDistance(500, position.x, 500, position.y) < 200)
-    {
-        position = sf::Vector2f(rand()%800, 100 + rand()%700);
+void updateAccuracy(sf::Text& accuracyLabel, int bulletsFired, int hitsLanded) {
+    if (bulletsFired != 0 && hitsLanded != 0) {
+        accuracyLabel.setString("Accuracy: " + std::to_string(static_cast<int>((static_cast<float>(hitsLanded)/static_cast<float>(bulletsFired))*100)) + '%');
     }
-
-    nEnemy.entity.setPosition(position);
-    nEnemy.healthBarBG.setPosition(sf::Vector2f(position.x, position.y-30));
-    nEnemy.healthBarFG.setPosition(nEnemy.healthBarBG.getPosition());
-
-    nEnemy.healthBarFG.setFillColor(sf::Color(0,255,0));
-
-    nEnemy.y_top = position.y;
-    nEnemy.y_bottom = position.y+107;
-
-    nEnemy.x_left = position.x;
-    nEnemy.x_right = position.x + 128;
-
-    nEnemy.entity.setTexture(&enemy_texture);
-
-    return nEnemy;
 }
