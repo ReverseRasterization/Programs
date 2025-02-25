@@ -8,17 +8,6 @@
 #include <vector>
 #include <chrono>
 
-// TODO: Make the game fit on all screens
-    // TODO: Modify enemy.draw()
-    // TODO: Modify enemy.getHitBox()
-    
-
-// TODO: Add indicators of critial hit (factor of 1.4 - 2), good hit (factor of .76 - 1.3), or weak hit (factor of .3-.75)
-// TODO: Add enemy movement
-// TODO: Add death animations (float x direction and fade)
-// TODO: Allow enemies to attack you
-// TODO: Add multiple enemies (implement max enemies & enemies per second)
-// TODO: Add an FPS counter
 // TODO: Add a settings UI that adjusts volume, max enemies, enemies per second, toggles the FPS counter or the accuracy counter, and playing field size
 
 struct Bullet{
@@ -39,6 +28,8 @@ int main()
 {
     srand(time(NULL));
 
+    int ENEMY_HEALTH = 100;
+
     int score = 0;
     int bulletsFired = 0;
     int hitsLanded = 0;
@@ -46,12 +37,19 @@ int main()
     // Load & apply textures
 
     sf::Texture xhairTexture;
+    sf::Texture enemyTexture;
+
     if(!xhairTexture.loadFromFile("assets/Textures/xhair.png")){
         return -1;
     }
 
     sf::RectangleShape xhair({75.f, 75.f});
     xhair.setTexture(&xhairTexture);
+    xhair.setOrigin({37.5f,37.5f});
+
+    if (!enemyTexture.loadFromFile("assets/Textures/enemy.png")){
+        return -1;
+    }
 
     // Load sounds
 
@@ -102,7 +100,7 @@ int main()
 
     // Make enemy
 
-    Enemy enemy = Enemy(100);
+    Enemy enemy = Enemy(ENEMY_HEALTH, enemyTexture);
 
     std::vector<Bullet> active_bullets;
 
@@ -138,7 +136,7 @@ int main()
                 double dY = (double)MousePos.y - TrianglePos.y;
 
                 triangle.setRotation(sf::degrees((atan2(dY, dX)) * (180.0f / 3.14159265359f)+90));
-                xhair.setPosition(MousePos-sf::Vector2f(37.5, 37.5));
+                xhair.setPosition(MousePos);
             }
 
             if(event->is<sf::Event::MouseButtonPressed>()){
@@ -150,7 +148,7 @@ int main()
 
             if(event->is<sf::Event::KeyPressed>()){
                 if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space)){
-                    enemy.summon();
+                    enemy = Enemy(ENEMY_HEALTH, enemyTexture);
                 }
             }
         }
@@ -197,7 +195,7 @@ int main()
 
                 if (enemy.getHp() <= 0) {
                     eDeathSound.play();
-                    enemy.summon();
+                    enemy = Enemy(ENEMY_HEALTH, enemyTexture);
 
                     score+=15;
                 }else {

@@ -3,16 +3,33 @@
 #include <SFML/Audio.hpp>
 #include <cmath>
 
+float getDistance(int x1, int x2, int y1, int y2);
 
-
-Enemy::Enemy(int health): hp(health) 
+Enemy::Enemy(int health, sf::Texture& enemyTexture): hp(health) 
 {
     maxHp = health;
-    if (!enemyTexture.loadFromFile("assets/Textures/enemy.png")){
-        return;
+
+    sf::Vector2f position(500, 500);
+
+    while (getDistance(500, position.x, 500, position.y) < 200)
+    {
+        position = sf::Vector2f(rand()%800, 100 + rand()%700);
     }
 
-    summon();
+    entity.setPosition(position);
+    healthBarBG.setPosition(sf::Vector2f(position.x, position.y-30));
+    healthBarFG.setPosition(healthBarBG.getPosition());
+
+    healthBarFG.setSize(sf::Vector2f(96.f, 10));
+    healthBarFG.setFillColor(sf::Color(0,255,0));
+
+    y_top = position.y;
+    y_bottom = position.y+107;
+
+    x_left = position.x;
+    x_right = position.x + 128;
+
+    entity.setTexture(&enemyTexture);
 }
 
 float getDistance(int x1, int x2, int y1, int y2){ // utilizes c^2 = a^2 + b^2 to determine distance
@@ -37,34 +54,6 @@ void Enemy::takeDamage(int damage, float damage_modifier){
     }
 
     healthBarFG.setSize(sf::Vector2f(healthBarBG.getSize().x * (static_cast<float>(hp)/100), healthBarFG.getSize().y));
-}
-
-void Enemy::summon(sf::Vector2f windowSize){
-    hp = maxHp;
-
-    sf::Vector2f position(500, 500);
-
-    while (getDistance(500, position.x, 500, position.y) < 200)
-    {
-        position = sf::Vector2f(rand()%800, 100 + rand()%700);
-    }
-
-    entity.setPosition(position);
-    healthBarBG.setPosition(sf::Vector2f(position.x, position.y-30));
-    healthBarFG.setPosition(healthBarBG.getPosition());
-
-    healthBarFG.setSize(sf::Vector2f(96.f, 10));
-    healthBarFG.setFillColor(sf::Color(0,255,0));
-
-    y_top = position.y;
-    y_bottom = position.y+107;
-
-    x_left = position.x;
-    x_right = position.x + 128;
-
-    positionScale = {position.x/windowSize.x, position.y/windowSize.y};
-
-    entity.setTexture(&enemyTexture);
 }
 
 void Enemy::draw(sf::RenderWindow& window){

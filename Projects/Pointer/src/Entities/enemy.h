@@ -14,8 +14,6 @@ class Enemy
         int maxHp;
         int speed = 10;
 
-        sf::Vector2f positionScale;
-
         // Some hitbox data, the rectangles getPosition function is at the top left corner of the rectangle
         int y_top;
         int y_bottom;
@@ -26,14 +24,12 @@ class Enemy
         sf::RectangleShape healthBarBG = sf::RectangleShape({96.f, 10});
         sf::RectangleShape healthBarFG = sf::RectangleShape({96.f, 10});
 
-        sf::Texture enemyTexture;
-
     public:
-        Enemy(int health);
+        Enemy(int health, sf::Texture& enemyTexture);
 
         int getHp();
         void takeDamage(int damage, float damage_modifier);
-        void summon(sf::Vector2f windowSize);
+        void summon();
         void draw(sf::RenderWindow& window);
         bool hit(sf::Vector2f bulletPos);
 
