@@ -39,7 +39,7 @@ void Enemy::takeDamage(int damage, float damage_modifier){
     healthBarFG.setSize(sf::Vector2f(healthBarBG.getSize().x * (static_cast<float>(hp)/100), healthBarFG.getSize().y));
 }
 
-void Enemy::summon(){
+void Enemy::summon(sf::Vector2f windowSize){
     hp = maxHp;
 
     sf::Vector2f position(500, 500);
@@ -61,6 +61,8 @@ void Enemy::summon(){
 
     x_left = position.x;
     x_right = position.x + 128;
+
+    positionScale = {position.x/windowSize.x, position.y/windowSize.y};
 
     entity.setTexture(&enemyTexture);
 }

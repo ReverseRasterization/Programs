@@ -8,13 +8,18 @@
 #include <vector>
 #include <chrono>
 
+// TODO: Make the game fit on all screens
+    // TODO: Modify enemy.draw()
+    // TODO: Modify enemy.getHitBox()
+    
+
 // TODO: Add indicators of critial hit (factor of 1.4 - 2), good hit (factor of .76 - 1.3), or weak hit (factor of .3-.75)
 // TODO: Add enemy movement
 // TODO: Add death animations (float x direction and fade)
 // TODO: Allow enemies to attack you
 // TODO: Add multiple enemies (implement max enemies & enemies per second)
 // TODO: Add an FPS counter
-// TODO: Add a settings UI that adjusts volume, max enemies, enemies per second, and toggles the FPS counter or the accuracy counter
+// TODO: Add a settings UI that adjusts volume, max enemies, enemies per second, toggles the FPS counter or the accuracy counter, and playing field size
 
 struct Bullet{
     sf::Vector2f direction;
@@ -27,7 +32,7 @@ struct Bullet{
 
 
 Bullet fireBullet(sf::Vector2f mousePos, sf::Vector2f trianglePos);
-void updateScore(sf::Text& scoreLabel, int nScore);
+void updateScore(sf::Text& scoreLabel, sf::Vector2f windowSize, int nScore);
 void updateAccuracy(sf::Text& accuracyLabel, int bulletsFired, int hitsLanded);
 
 int main()
@@ -69,7 +74,7 @@ int main()
 
     // Make window
 
-    sf::RenderWindow window(sf::VideoMode({1000,1000}), "Mouse Pointer", sf::Style::Close);
+    sf::RenderWindow window(sf::VideoMode({1000,1000}), "Mouse Pointer");
     window.setMouseCursorVisible(false);
 
     // Make score & accuracy counter
@@ -77,7 +82,7 @@ int main()
     sf::Text scoreLabel(font);
     scoreLabel.setCharacterSize(48);
     scoreLabel.setFillColor(sf::Color::White);
-    updateScore(scoreLabel, score);
+    updateScore(scoreLabel, static_cast<sf::Vector2f>(window.getSize()), score);
 
     sf::Text accuracyLabel(font);
     accuracyLabel.setCharacterSize(24);
@@ -113,6 +118,19 @@ int main()
             if (event->is<sf::Event::Closed>()) {
                 window.close();
             }
+
+            if(event->is<sf::Event::Resized>()) {
+                std::cout << "\nNew Window Size: \n   X: " << window.getSize().x << "\n   Y: " << window.getSize().y;
+
+                sf::Vector2f nSize = static_cast<sf::Vector2f>(window.getSize());
+
+                triangle.setPosition(nSize/2.f);
+                accuracyLabel.setPosition({10.f, nSize.y-30.f});
+                updateScore(scoreLabel, nSize, score);
+                
+                window.setView(sf::View(sf::FloatRect({0.f, 0.f}, nSize)));
+            }
+
             if (event->is<sf::Event::MouseMoved>()){
                 sf::Vector2f MousePos = static_cast<sf::Vector2f>(sf::Mouse::getPosition(window));
                 sf::Vector2f TrianglePos = triangle.getPosition();
@@ -122,12 +140,14 @@ int main()
                 triangle.setRotation(sf::degrees((atan2(dY, dX)) * (180.0f / 3.14159265359f)+90));
                 xhair.setPosition(MousePos-sf::Vector2f(37.5, 37.5));
             }
+
             if(event->is<sf::Event::MouseButtonPressed>()){
                 active_bullets.push_back(fireBullet(static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)), triangle.getPosition()));
                 gunshot.play();
 
                 bulletsFired+=1;
             }
+
             if(event->is<sf::Event::KeyPressed>()){
                 if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space)){
                     enemy.summon();
@@ -184,7 +204,7 @@ int main()
                     hitSound.play();
                 }
 
-                updateScore(scoreLabel, score);
+                updateScore(scoreLabel, static_cast<sf::Vector2f>(window.getSize()), score);
                 updateAccuracy(accuracyLabel, bulletsFired, hitsLanded);
                 
                 it = active_bullets.erase(it);
@@ -227,11 +247,11 @@ Bullet fireBullet(sf::Vector2f mousePos, sf::Vector2f trianglePos) {
     return nBullet;
 }
 
-void updateScore(sf::Text& scoreLabel, int nScore){
+void updateScore(sf::Text& scoreLabel, sf::Vector2f windowSize, int nScore){
     scoreLabel.setString("Score: " + std::to_string(nScore));
 
     scoreLabel.setOrigin(scoreLabel.getLocalBounds().getCenter());
-    scoreLabel.setPosition(sf::Vector2f(500,30));
+    scoreLabel.setPosition({windowSize.x/2.f,30});
 }
 
 void updateAccuracy(sf::Text& accuracyLabel, int bulletsFired, int hitsLanded) {
