@@ -7,7 +7,7 @@ int main()
     float currRes = .25f;
 
     sf::RenderWindow window(sf::VideoMode({500, 500}), "Rounded Box Demo");
-    RoundedSquare rsquare = RoundedSquare({50, 200}, {100.f, 200.f},.5f, currRes);
+    RoundedSquare rsquare = RoundedSquare({300, 100}, {100.f, 200.f}, .5f, currRes);
 
     sf::Clock clock;
 
