@@ -4,12 +4,12 @@
 
 int main()
 {
+    float currRes = .25f;
+
     sf::RenderWindow window(sf::VideoMode({500, 500}), "Rounded Box Demo");
-    RoundedSquare rsquare = RoundedSquare({200, 100}, {250.f, 250.f},.25f, 1.f);
+    RoundedSquare rsquare = RoundedSquare({50, 200}, {100.f, 200.f},.5f, currRes);
 
     sf::Clock clock;
-
-    float currRes = 1.f;
 
     while(window.isOpen()) {
         while (const std::optional event = window.pollEvent()) {
