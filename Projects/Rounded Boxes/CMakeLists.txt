@@ -16,7 +16,7 @@ FetchContent_Declare(SFML
     
 FetchContent_MakeAvailable(SFML)
 
-add_executable(main src/main.cpp src/rbox.cpp)
+add_executable(main src/main.cpp src/rbox.cpp src/slider.cpp)
 # add_custom_command(TARGET main POST_BUILD
 #     COMMAND ${CMAKE_COMMAND} -E copy_directory
 #     ${CMAKE_SOURCE_DIR}/assets ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/assets
