@@ -2,30 +2,25 @@
 #include <cmath>
 #include <iostream>
 
-void drawRect(sf::Vector2f position, sf::Vector2f size, sf::VertexArray& m_verticies, int startingIndex) {
+void drawRect(sf::Vector2f position, sf::Vector2f size, sf::VertexArray& m_verticies, int startingIndex, sf::Color color) {
     sf::Vertex nBoundVert;
+    nBoundVert.color = color;
 
-    nBoundVert.color = sf::Color::Red;
     nBoundVert.position = position; // top left corner
     m_verticies[startingIndex] = nBoundVert;
 
-    nBoundVert.color = sf::Color::Green;
     nBoundVert.position = {position.x + size.x, position.y}; // top right corner
     m_verticies[startingIndex + 1] = nBoundVert;
 
-    nBoundVert.color = sf::Color::Blue;
     nBoundVert.position = {position.x + size.x, position.y + size.y}; // bottom right corner
     m_verticies[startingIndex + 2] = nBoundVert;
 
-    nBoundVert.color = sf::Color::Yellow;
     nBoundVert.position = {position.x + size.x, position.y + size.y}; // bottom right corner
     m_verticies[startingIndex + 3] = nBoundVert;
 
-    nBoundVert.color = sf::Color::White;
     nBoundVert.position = {position.x, position.y + size.y}; // bottom left corner
     m_verticies[startingIndex + 4] = nBoundVert;
 
-    nBoundVert.color = sf::Color::Cyan;
     nBoundVert.position = position; // top left corner
     m_verticies[startingIndex + 5] = nBoundVert;
 }
@@ -51,7 +46,7 @@ void Slider::drawNewPointPosition() {
     sf::Vector2f pos = {(lineEnds[0].x + ((lineEnds[1].x - lineEnds[0].x) * static_cast<float>(((currentValue - min)/(max - min))))) - (squareSize.x/2), 
                          lineEnds[0].y - (squareSize.y/2)};
     
-    drawRect(pos, squareSize, m_verticies, m_verticies.getVertexCount()-6);
+    drawRect(pos, squareSize, m_verticies, m_verticies.getVertexCount()-6, color);
 }
 
 void Slider::toggleSubscription(bool toggle){
@@ -69,7 +64,6 @@ void Slider::update(sf::Vector2i mouse_pos) {
 
     if (mouse_pos.x >= lineEnds[0].x && mouse_pos.x <= lineEnds[1].x) {
         double nValue = min + (max - min) * (mouse_pos.x - lineEnds[0].x)/(lineEnds[1].x - lineEnds[0].x);
-        std::cout << nValue << '\n';
 
         currentValue = min + round((nValue - min) / step) * step;
 
@@ -83,8 +77,8 @@ double Slider::getValue() {
     return currentValue;
 }
 
-Slider::Slider(std::vector<sf::Vector2f> line_ends, sliderPointType slider_point_type, int bar_thickness, sf::Vector2f slider_point_proportions, sf::Vector2f line_boundary_size, double initial_value, double value_step, double min, double max):
-        lineEnds(line_ends), pointType(slider_point_type), barThickness(bar_thickness), sliderPointProportions(slider_point_proportions), lineBoundSize(line_boundary_size), currentValue(initial_value), step(value_step), min(min), max(max) 
+Slider::Slider(std::vector<sf::Vector2f> line_ends, sliderPointType slider_point_type, int bar_thickness, sf::Vector2f slider_point_proportions, sf::Vector2f line_boundary_size, double initial_value, double value_step, double min, double max, sf::Color color):
+        lineEnds(line_ends), pointType(slider_point_type), barThickness(bar_thickness), sliderPointProportions(slider_point_proportions), lineBoundSize(line_boundary_size), currentValue(initial_value), step(value_step), min(min), max(max), color(color)
 {
     // Get & Set the verticy size
     int vert_size = 12; // 12 verticies for the line & point
@@ -101,12 +95,12 @@ Slider::Slider(std::vector<sf::Vector2f> line_ends, sliderPointType slider_point
     if (line_boundary_size.x > 0.f) {
         nextAvailableVertIndex = 12;
 
-        drawRect({line_ends[0].x - lineBoundSize.x, line_ends[0].y-(lineBoundSize.y/2)}, lineBoundSize, m_verticies, 0); // Left Bound
-        drawRect({line_ends[1].x, line_ends[0].y-(lineBoundSize.y/2)}, lineBoundSize, m_verticies, 6); // Right Bound
+        drawRect({line_ends[0].x - lineBoundSize.x, line_ends[0].y-(lineBoundSize.y/2)}, lineBoundSize, m_verticies, 0, color); // Left Bound
+        drawRect({line_ends[1].x, line_ends[0].y-(lineBoundSize.y/2)}, lineBoundSize, m_verticies, 6, color); // Right Bound
     }
 
     // Draw the actual line itself
-    drawRect({line_ends[0].x, line_ends[1].y-(bar_thickness/2)}, {line_ends[1].x-line_ends[0].x, static_cast<float>(bar_thickness)}, m_verticies, nextAvailableVertIndex);
+    drawRect({line_ends[0].x, line_ends[1].y-(bar_thickness/2)}, {line_ends[1].x-line_ends[0].x, static_cast<float>(bar_thickness)}, m_verticies, nextAvailableVertIndex, color);
     nextAvailableVertIndex+=6;
 
     // Draw the point

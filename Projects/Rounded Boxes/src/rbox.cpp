@@ -221,6 +221,11 @@ void RoundedSquare::changeResolution(float new_resolution) {
     draw_rect(m_verticies, size, position, round_factor, new_resolution);
 }
 
+void RoundedSquare::changeRoundingFactor(float new_factor) {
+    round_factor = new_factor;
+    draw_rect(m_verticies, size, position, new_factor, round_resolution);
+}
+
 RoundedSquare::RoundedSquare(sf::Vector2i size, sf::Vector2f position, float round_factor, float round_resolution): size(size), position(position), round_factor(round_factor), round_resolution(round_resolution) {
     m_verticies.setPrimitiveType(sf::PrimitiveType::Triangles);
     draw_rect(m_verticies, size, position, round_factor, round_resolution);

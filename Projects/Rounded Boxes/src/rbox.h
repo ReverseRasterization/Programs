@@ -21,4 +21,5 @@ class RoundedSquare : public sf::Drawable, public sf::Transformable {
         RoundedSquare(sf::Vector2i size, sf::Vector2f position, float round_factor, float round_resolution);
 
         void changeResolution(float new_resolution);
+        void changeRoundingFactor(float new_factor);
 };

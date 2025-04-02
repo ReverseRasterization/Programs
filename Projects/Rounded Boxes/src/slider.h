@@ -11,7 +11,7 @@ class Slider : public sf::Drawable, public sf::Transformable {
                                                                          double initial_value,
                                                                          double value_step,
                                                                          double min,
-                                                                         double max);
+                                                                         double max, sf::Color color);
 
         
         void update(sf::Vector2i mouse_pos);
@@ -43,6 +43,5 @@ class Slider : public sf::Drawable, public sf::Transformable {
 
         sf::Vector2f sliderPointProportions; // relative to the size of the bar
         int barThickness;
-
-        int circleResolution = 24;
+        sf::Color color;
 };
